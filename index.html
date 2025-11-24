@@ -3,455 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>浏览器首页</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* 默认背景色，如果未设置图片则显示 */
-            background-color: #2c3e50;
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            background-attachment: fixed; /* 背景固定 */
-            color: #ecf0f1;
-            min-height: 100vh;
-            transition: background-image 0.5s ease-in-out; /* 背景切换过渡效果 */
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            /* 背景色半透明遮罩，让文字更清晰 */
-            background-color: rgba(0, 0, 0, 0.3);
-            min-height: calc(100vh - 40px); /* 减去padding */
-            border-radius: 10px; /* 圆角 */
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            position: relative; /* 为设置按钮定位做准备 */
-            padding-top: 20px; /* 给设置按钮留空间 */
-        }
-
-        #settings-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: #ecf0f1;
-            font-size: 1.5rem;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: opacity 0.3s;
-            z-index: 10; /* 确保在最上层 */
-        }
-
-        #settings-btn:hover {
-            opacity: 1;
-        }
-
-        h1 {
-            color: white;
-            font-size: 2.5rem;
-            margin-top: 10px;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-        }
-
-        .greeting {
-            color: #bdc3c7;
-            font-size: 1.2rem;
-            margin-top: 10px;
-        }
-
-        /* 搜索框区域样式 */
-        .search-section {
-            max-width: 600px;
-            margin: 0 auto 40px auto; /* 下边距增加与卡片间距 */
-        }
-
-        .search-form {
-            display: flex;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            border-radius: 30px;
-            overflow: hidden;
-        }
-
-        .search-input {
-            flex-grow: 1;
-            padding: 15px 20px;
-            border: none;
-            outline: none;
-            font-size: 1rem;
-        }
-
-        .search-button {
-            padding: 15px 25px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-
-        .search-button:hover {
-            background-color: #2980b9;
-        }
-
-        /* 卡片区域样式 */
-        .card-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
-            justify-content: center;
-        }
-
-        .card {
-            background-color: rgba(255, 255, 255, 0.9); /* 半透明白色背景 */
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 120px;
-            text-decoration: none;
-            color: #2c3e50; /* 文字颜色改为深色以适应浅色背景 */
-            font-weight: bold;
-            animation: fadeInUp 0.6s ease-out;
-            animation-fill-mode: backwards;
-        }
-
-        .card:nth-child(1) { animation-delay: 0.1s; }
-        .card:nth-child(2) { animation-delay: 0.2s; }
-        .card:nth-child(3) { animation-delay: 0.3s; }
-        .card:nth-child(4) { animation-delay: 0.4s; }
-        .card:nth-child(5) { animation-delay: 0.5s; }
-        .card:nth-child(6) { animation-delay: 0.6s; }
-        .card:nth-child(7) { animation-delay: 0.7s; }
-        .card:nth-child(8) { animation-delay: 0.8s; }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-            background-color: rgba(255, 255, 255, 1); /* 悬停时变为不透明 */
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #bdc3c7;
-            font-size: 0.9rem;
-        }
-
-        /* 设置对话框样式 */
-        #settings-modal {
-            display: none; /* 默认隐藏 */
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5); /* 半透明黑色背景 */
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 5px;
-            color: #333;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-        }
-
-        .modal-content input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .modal-content input[type="file"] {
-            margin: 10px 0;
-        }
-
-        .modal-content button {
-            background-color: #3498db;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .modal-content button:hover {
-            background-color: #2980b9;
-        }
-
-        /* 动画关键帧 */
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .card-container {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 15px;
-            }
-            h1 { font-size: 2rem; }
-            .search-input { padding: 12px 15px; }
-            .search-button { padding: 12px 20px; }
-        }
-
-        @media (max-width: 480px) {
-            .card-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-            h1 { font-size: 1.8rem; }
-            .greeting { font-size: 1rem; }
-            .search-section { margin-bottom: 30px; }
-            .search-form { flex-direction: column; border-radius: 10px; }
-            .search-input, .search-button {
-                width: 100%;
-                border-radius: 0;
-                padding: 15px;
-            }
-            .search-button { border-radius: 0 0 10px 10px; }
-        }
-
-    </style>
+    <title>我的浏览器首页</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="container">
+<div class="page-content">
     <header>
+        <button id="theme-toggle" title="切换主题">🌙</button>
         <button id="settings-btn" title="设置背景">&#9881;</button>
-        <h1 id="welcome-message">你好！</h1>
+        <h1 id="welcome-message">晚上好！</h1>
         <p class="greeting" id="current-time"></p>
     </header>
 
     <main>
         <!-- 搜索框部分 -->
         <section class="search-section">
-            <form class="search-form" id="search-form" action="https://www.google.com/search" method="get" target="_blank">
-                <input type="text" class="search-input" name="q" placeholder="在 Google 上搜索..." autocomplete="off" required>
+            <form class="search-form" id="search-form" method="get" target="_blank">
+                <select class="engine-selector" id="engine-selector">
+                    <option value="google">Google</option>
+                    <option value="bing">Bing</option>
+                    <option value="baidu">百度</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                </select>
+                <div id="search-history"></div>
+                <input type="text" class="search-input" name="q" placeholder="搜索或输入网址..." autocomplete="off" required>
                 <button type="submit" class="search-button">搜索</button>
             </form>
         </section>
 
-        <!-- 卡片部分 -->
-        <section>
-            <div class="card-container" id="bookmark-cards">
-                <!-- 卡片将由JavaScript动态生成 -->
-            </div>
-        </section>
+        <!-- 新增：包含待办事项和书签的主内容区域 -->
+        <div class="main-content-grid">
+            <!-- 待办事项部分 -->
+            <section class="todo-section">
+                <h2>待办事项</h2>
+                <div class="todo-input-container">
+                    <input type="text" id="todo-input" placeholder="添加新任务...">
+                    <button id="add-todo-btn">添加</button>
+                </div>
+                <ul id="todo-list"></ul>
+            </section>
+
+            <!-- 卡片部分 -->
+            <section>
+                <div class="card-container" id="bookmark-cards">
+                    <!-- 卡片将由JavaScript动态生成 -->
+                </div>
+            </section>
+        </div>
+
     </main>
 
     <footer>
-        <p>&copy; 2025 浏览器首页</p>
+        <p>&copy; 2025 我的私人首页</p>
     </footer>
 </div>
 
 <!-- 设置背景图片的模态框 -->
-<div id="settings-modal">
+<div id="bg-modal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
         <h2>设置背景图片</h2>
-        <label for="bg-url">输入图片 URL:</label>
-        <input type="text" id="bg-url" placeholder="例如: https://example.com/image.jpg">
-        <br>
-        <label for="bg-file">或选择本地文件:</label>
-        <input type="file" id="bg-file" accept="image/*">
+        <p>您可以输入一个图片链接，或者从您的电脑中选择一张图片。</p>
+        <input type="text" id="bg-url" placeholder="输入图片URL (如: https://example.com/image.jpg)">
         <br><br>
-        <button id="save-bg">确定</button>
-        <button id="clear-bg">清除背景</button>
+        <input type="file" id="bg-file" accept="image/*" style="display: block; width: 100%; padding: 10px; font-size: 1rem;">
+        <br><br>
+        <button id="set-bg-btn">设置背景</button>
     </div>
 </div>
 
-
-<script>
-    // --- 自定义区域 ---
-    // 在这里添加、删除或修改你的书签卡片
-    const bookmarks = [
-        { name: "Google", url: "https://www.google.com", color: "#4285F4" },
-        { name: "Gmail", url: "https://mail.google.com", color: "#EA4335" },
-        { name: "YouTube", url: "https://www.youtube.com", color: "#FF0000" },
-        { name: "GitHub", url: "https://github.com", color: "#333333" },
-        { name: "知乎", url: "https://www.zhihu.com", color: "#0084ff" },
-        { name: "微博", url: "https://weibo.com", color: "#E6162D" },
-        { name: "Bilibili", url: "https://www.bilibili.com", color: "#FB7299" },
-        { name: "天气", url: "https://weather.com/zh-CN/weather/today/l/CHXX0008:1:CH", color: "#FFD700" }
-        // 添加更多卡片...
-    ];
-    // --- 结束自定义区域 ---
-
-    // --- 功能函数 ---
-    function updateTime() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-
-        const timeString = `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`;
-        document.getElementById('current-time').textContent = timeString;
-
-        const hour = now.getHours();
-        let greeting = "";
-        if (hour >= 6 && hour < 12) {
-            greeting = "早上好！又是充满活力的一天！";
-        } else if (hour >= 12 && hour < 18) {
-            greeting = "下午好！工作顺利吗？";
-        } else if (hour >= 18 && hour < 22) {
-            greeting = "晚上好！放松一下吧！";
-        } else {
-            greeting = "夜深了，注意休息哦！";
-        }
-        document.getElementById('welcome-message').textContent = greeting;
-    }
-
-    function createCards() {
-        const container = document.getElementById('bookmark-cards');
-        container.innerHTML = '';
-        bookmarks.forEach(bookmark => {
-            const cardLink = document.createElement('a');
-            cardLink.href = bookmark.url;
-            cardLink.target = "_blank";
-            cardLink.className = 'card';
-            // 卡片背景色，如果需要的话
-            // cardLink.style.backgroundColor = bookmark.color || 'rgba(255, 255, 255, 0.9)';
-            cardLink.textContent = bookmark.name;
-            container.appendChild(cardLink);
-        });
-    }
-
-    // --- 背景设置相关 ---
-    function setBackgroundImage(src) {
-        if (src) {
-            document.body.style.backgroundImage = `url('${src}')`;
-            localStorage.setItem('customBackground', src); // 保存到本地存储
-        } else {
-            document.body.style.backgroundImage = 'none';
-            localStorage.removeItem('customBackground'); // 从本地存储移除
-        }
-    }
-
-    function loadSavedBackground() {
-        const savedBg = localStorage.getItem('customBackground');
-        if (savedBg) {
-            setBackgroundImage(savedBg);
-        }
-    }
-
-    // --- 事件监听 ---
-    document.addEventListener('DOMContentLoaded', () => {
-        updateTime();
-        createCards();
-        loadSavedBackground(); // 加载已保存的背景
-        setInterval(updateTime, 1000);
-
-        // 设置按钮和模态框逻辑
-        const modal = document.getElementById("settings-modal");
-        const btn = document.getElementById("settings-btn");
-        const span = document.getElementsByClassName("close")[0];
-        const saveBtn = document.getElementById("save-bg");
-        const clearBtn = document.getElementById("clear-bg");
-        const bgUrlInput = document.getElementById("bg-url");
-        const bgFileInput = document.getElementById("bg-file");
-
-        btn.onclick = function() {
-            modal.style.display = "block";
-        }
-
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-
-        saveBtn.onclick = function() {
-            const url = bgUrlInput.value.trim();
-            const file = bgFileInput.files[0];
-
-            if (url) {
-                setBackgroundImage(url);
-                modal.style.display = "none";
-            } else if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    setBackgroundImage(e.target.result);
-                    modal.style.display = "none";
-                };
-                reader.readAsDataURL(file); // 读取为 Data URL
-            } else {
-                alert("请输入 URL 或选择一个文件。");
-            }
-        };
-
-        clearBtn.onclick = function() {
-            setBackgroundImage('');
-            bgUrlInput.value = '';
-            bgFileInput.value = ''; // 清空文件输入
-            modal.style.display = "none";
-        };
-
-        // 允许按 Enter 键提交搜索
-        const searchForm = document.getElementById('search-form');
-        const searchInput = document.querySelector('.search-input');
-        searchForm.addEventListener('submit', function(e) {
-            if (!searchInput.value.trim()) {
-                e.preventDefault(); // 如果输入为空，则阻止提交
-                searchInput.focus();
-            }
-        });
-
-    });
-
-</script>
+<script src="script.js"></script>
 </body>
 </html>
