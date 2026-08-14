@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StartTab · 我的浏览器首页</title>
+    <script type="module" src="/main.ts"></script>
+</head>
+<body>
+<div class="bg-overlay"></div>
+
+<div class="page-content">
+    <!-- 顶栏 -->
+    <header class="topbar">
+        <div class="topbar-left"></div>
+        <div class="topbar-right">
+            <button id="help-btn" class="icon-btn" title="快捷键帮助">❓</button>
+            <button id="theme-toggle" class="icon-btn" title="切换主题">🌙</button>
+            <button id="settings-btn" class="icon-btn" title="设置">⚙️</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- 搜索 -->
+        <section class="search-section">
+            <h1 id="welcome-message">晚上好！</h1>
+            <p class="greeting" id="current-time"></p>
+            <form class="search-form" id="search-form" autocomplete="off">
+                <select class="engine-selector" id="engine-selector" title="选择搜索引擎"></select>
+                <div id="search-history" class="search-history hidden"></div>
+                <input type="text" class="search-input" id="search-input"
+                       placeholder="搜索或输入网址…（按 / 快速聚焦；译 xxx 直接翻译）" autocomplete="off">
+                <button type="button" class="translate-button" id="translate-btn" title="翻译当前内容">🌐</button>
+                <button type="submit" class="search-button">搜索</button>
+            </form>
+            <p class="shortcut-hint">快捷键：<kbd>/</kbd> 搜索 · <kbd>t</kbd> 待办 · <kbd>n</kbd> 新建书签 · <kbd>?</kbd> 帮助 · <kbd>Esc</kbd> 关闭</p>
+        </section>
+
+        <!-- 小组件行 -->
+        <section class="widgets-row" id="widgets-row"></section>
+
+        <!-- 主体：待办 + 书签 -->
+        <div class="main-content-grid">
+            <section class="panel todo-panel">
+                <div class="panel-header">
+                    <h2>📋 待办事项</h2>
+                    <button id="clear-completed-btn" class="text-btn hidden">清除已完成</button>
+                </div>
+                <div class="todo-filters" id="todo-filters">
+                    <button data-filter="all" class="filter-btn active">全部</button>
+                    <button data-filter="active" class="filter-btn">进行中</button>
+                    <button data-filter="completed" class="filter-btn">已完成</button>
+                </div>
+                <div class="todo-input-container">
+                    <input type="text" id="todo-input" placeholder="添加新任务…（回车）" autocomplete="off">
+                    <button id="add-todo-btn">添加</button>
+                </div>
+                <ul id="todo-list" class="todo-list"></ul>
+                <p id="todo-empty" class="empty-tip hidden">暂无任务，享受生活 🎉</p>
+            </section>
+
+            <section class="panel bookmark-panel">
+                <div class="panel-header">
+                    <h2>🔖 书签</h2>
+                    <button id="add-bookmark-btn" class="text-btn">＋ 添加书签</button>
+                </div>
+                <div class="group-chips" id="group-chips"></div>
+                <div class="card-container" id="bookmark-cards"></div>
+                <p id="bookmark-empty" class="empty-tip hidden">这个分组还没有书签，点击右上角添加 🚀</p>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2025 StartTab · 本地存储 · 纯原生零依赖</p>
+    </footer>
+</div>
+
+<!-- ========== 书签编辑 ========== -->
+<div id="bookmark-modal" class="modal">
+    <div class="modal-content small">
+        <span class="close" data-close="bookmark-modal">&times;</span>
+        <h2 id="bookmark-modal-title">添加书签</h2>
+        <form id="bookmark-form">
+            <input type="hidden" id="bookmark-edit-id">
+            <label>名称
+                <input type="text" id="bookmark-name" placeholder="例如：GitHub" required>
+            </label>
+            <label>网址
+                <input type="text" id="bookmark-url" placeholder="https://github.com" required>
+            </label>
+            <label>图标（可选：Emoji 或留空自动获取网站图标）
+                <input type="text" id="bookmark-icon" placeholder="例如：💻（留空自动）">
+            </label>
+            <label>分组
+                <select id="bookmark-group"></select>
+            </label>
+            <div class="form-actions">
+                <button type="button" class="btn-ghost" data-close="bookmark-modal">取消</button>
+                <button type="submit" class="btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========== 待办编辑 ========== -->
+<div id="todo-modal" class="modal">
+    <div class="modal-content small">
+        <span class="close" data-close="todo-modal">&times;</span>
+        <h2>编辑待办</h2>
+        <form id="todo-form">
+            <input type="hidden" id="todo-edit-id">
+            <label>内容
+                <input type="text" id="todo-edit-text" required>
+            </label>
+            <div class="form-row">
+                <label>优先级
+                    <select id="todo-edit-priority">
+                        <option value="high">🔴 高</option>
+                        <option value="medium" selected>🟠 中</option>
+                        <option value="low">🟢 低</option>
+                    </select>
+                </label>
+                <label>截止日期
+                    <input type="date" id="todo-edit-due">
+                </label>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-danger" id="todo-delete-btn">删除</button>
+                <span class="spacer"></span>
+                <button type="button" class="btn-ghost" data-close="todo-modal">取消</button>
+                <button type="submit" class="btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========== 设置 ========== -->
+<div id="settings-modal" class="modal">
+    <div class="modal-content wide">
+        <span class="close" data-close="settings-modal">&times;</span>
+        <h2>设置</h2>
+        <div class="tabs" id="settings-tabs">
+            <button class="tab-btn active" data-tab="engines">搜索引擎</button>
+            <button class="tab-btn" data-tab="groups">书签分组</button>
+            <button class="tab-btn" data-tab="appearance">外观与组件</button>
+            <button class="tab-btn" data-tab="data">数据</button>
+        </div>
+
+        <!-- 搜索引擎 -->
+        <div class="tab-panel active" id="tab-engines">
+            <p class="tab-desc">自定义搜索引擎，第一个为默认引擎。</p>
+            <ul id="engine-list" class="engine-list"></ul>
+            <form id="engine-form" class="engine-form">
+                <input type="hidden" id="engine-edit-id">
+                <div class="form-row">
+                    <label>常用引擎预设
+                        <select id="engine-preset">
+                            <option value="-1">— 选择预设快速填入 —</option>
+                        </select>
+                    </label>
+                    <label>名称
+                        <input type="text" id="engine-name" placeholder="例如：Google" required>
+                    </label>
+                    <label>搜索地址
+                        <input type="text" id="engine-url" placeholder="https://www.google.com/search" required>
+                    </label>
+                    <label>查询参数
+                        <input type="text" id="engine-query" placeholder="q" required>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <span class="form-tip" id="engine-form-tip"></span>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn-ghost" id="engine-reset-btn">恢复默认</button>
+                    <button type="submit" class="btn-primary" id="engine-save-btn">添加</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 书签分组 -->
+        <div class="tab-panel" id="tab-groups">
+            <p class="tab-desc">书签按分组组织，页面书签栏支持按组筛选。</p>
+            <ul id="group-list" class="group-list"></ul>
+            <form id="group-add-form" class="engine-form">
+                <div class="form-row">
+                    <label>新分组名称
+                        <input type="text" id="group-add-input" placeholder="例如：工作 / 娱乐" required>
+                    </label>
+                    <button type="submit" class="btn-primary">添加分组</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 外观与组件 -->
+        <div class="tab-panel" id="tab-appearance">
+            <h3>主题</h3>
+            <div class="form-row">
+                <label>颜色模式
+                    <select id="settings-theme">
+                        <option value="auto">跟随系统</option>
+                        <option value="dark">深色</option>
+                        <option value="light">浅色</option>
+                    </select>
+                </label>
+            </div>
+            <h3>壁纸库</h3>
+            <div id="wallpaper-gallery"></div>
+            <h3>自定义背景</h3>
+            <div class="form-row">
+                <label>图片链接
+                    <input type="text" id="bg-url" placeholder="https://example.com/image.jpg">
+                </label>
+                <button type="button" class="btn-ghost" id="bg-url-btn">应用</button>
+            </div>
+            <div class="form-row">
+                <label>本地图片
+                    <input type="file" id="bg-file" accept="image/*">
+                </label>
+            </div>
+            <h3>天气</h3>
+            <div class="form-row">
+                <label>城市
+                    <input type="text" id="weather-city" placeholder="例如：北京 / Shanghai">
+                </label>
+                <button type="button" class="btn-ghost" id="weather-save-btn">保存</button>
+            </div>
+            <p class="form-tip">天气数据来自 Open-Meteo（免费无密钥），未设置城市时会尝试自动定位。</p>
+            <h3>小组件</h3>
+            <div id="widget-settings"></div>
+        </div>
+
+        <!-- 数据 -->
+        <div class="tab-panel" id="tab-data">
+            <h3>备份与恢复</h3>
+            <p class="tab-desc">全部数据（书签/分组/搜索引擎/待办/倒数日/便签/设置/历史）保存在浏览器 localStorage，可导出 JSON 备份或导入恢复（导入会校验数据合法性）。</p>
+            <div class="form-row">
+                <button type="button" class="btn-primary" id="export-btn">导出数据</button>
+                <label class="btn-ghost file-btn">导入数据
+                    <input type="file" id="import-file" accept=".json,application/json" hidden>
+                </label>
+            </div>
+            <h3>危险操作</h3>
+            <button type="button" class="btn-danger" id="reset-btn">重置全部数据</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 快捷键帮助 ========== -->
+<div id="help-modal" class="modal">
+    <div class="modal-content small">
+        <span class="close" data-close="help-modal">&times;</span>
+        <h2>⌨️ 快捷键</h2>
+        <table class="shortcut-table">
+            <tr><td><kbd>/</kbd></td><td>聚焦搜索框</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>K</kbd></td><td>聚焦搜索框</td></tr>
+            <tr><td><kbd>t</kbd></td><td>聚焦待办输入框</td></tr>
+            <tr><td><kbd>n</kbd></td><td>新建书签</td></tr>
+            <tr><td><kbd>?</kbd></td><td>打开本帮助</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>关闭弹窗</td></tr>
+            <tr><td>输入 <kbd>译 xxx</kbd></td><td>直接翻译（中→英 / 英→中）</td></tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>

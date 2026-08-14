@@ -1,0 +1,23 @@
+{
+  "name": "starttab",
+  "private": true,
+  "version": "2.0.0",
+  "description": "个人浏览器起始页：玻璃拟态，书签分组/待办/自定义搜索引擎/小组件/天气/壁纸库，纯原生零运行时依赖",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build && node scripts/copy-root.mjs",
+    "build:only": "vite build && node scripts/copy-root.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^4.1.10"
+  }
+}
