@@ -7,68 +7,233 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="bg-overlay"></div>
+
 <div class="page-content">
-    <header>
-        <button id="theme-toggle" title="切换主题">🌙</button>
-        <button id="settings-btn" title="设置背景">&#9881;</button>
-        <h1 id="welcome-message">晚上好！</h1>
-        <p class="greeting" id="current-time"></p>
+    <!-- 顶栏：天气 + 操作按钮 -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div id="weather-widget" class="weather-widget hidden" title="点击设置城市" role="button" tabindex="0">
+                <span id="weather-icon" class="weather-icon"></span>
+                <span id="weather-info" class="weather-info"></span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <button id="theme-toggle" class="icon-btn" title="切换主题">🌙</button>
+            <button id="settings-btn" class="icon-btn" title="设置">⚙️</button>
+        </div>
     </header>
 
     <main>
-        <!-- 搜索框部分 -->
+        <!-- 搜索部分 -->
         <section class="search-section">
-            <form class="search-form" id="search-form" method="get" target="_blank">
-                <select class="engine-selector" id="engine-selector">
-                    <option value="google">Google</option>
-                    <option value="bing">Bing</option>
-                    <option value="baidu">百度</option>
-                    <option value="duckduckgo">DuckDuckGo</option>
-                </select>
-                <div id="search-history"></div>
-                <input type="text" class="search-input" name="q" placeholder="搜索或输入网址..." autocomplete="off" required>
+            <h1 id="welcome-message">晚上好！</h1>
+            <p class="greeting" id="current-time"></p>
+            <form class="search-form" id="search-form" autocomplete="off">
+                <select class="engine-selector" id="engine-selector" title="选择搜索引擎"></select>
+                <div id="search-history" class="search-history"></div>
+                <input type="text" class="search-input" id="search-input"
+                       placeholder="搜索或输入网址…（按 / 快速聚焦）" autocomplete="off">
                 <button type="submit" class="search-button">搜索</button>
             </form>
+            <p class="shortcut-hint">快捷键：<kbd>/</kbd> 搜索 · <kbd>t</kbd> 待办 · <kbd>n</kbd> 新建书签 · <kbd>?</kbd> 帮助 · <kbd>Esc</kbd> 关闭</p>
         </section>
 
-        <!-- 新增：包含待办事项和书签的主内容区域 -->
+        <!-- 主体：待办 + 书签 -->
         <div class="main-content-grid">
-            <!-- 待办事项部分 -->
-            <section class="todo-section">
-                <h2>待办事项</h2>
+            <!-- 待办事项 -->
+            <section class="panel todo-panel">
+                <div class="panel-header">
+                    <h2>📋 待办事项</h2>
+                    <button id="clear-completed-btn" class="text-btn hidden">清除已完成</button>
+                </div>
+                <div class="todo-filters" id="todo-filters">
+                    <button data-filter="all" class="filter-btn active">全部</button>
+                    <button data-filter="active" class="filter-btn">进行中</button>
+                    <button data-filter="completed" class="filter-btn">已完成</button>
+                </div>
                 <div class="todo-input-container">
-                    <input type="text" id="todo-input" placeholder="添加新任务...">
+                    <input type="text" id="todo-input" placeholder="添加新任务…（回车）" autocomplete="off">
                     <button id="add-todo-btn">添加</button>
                 </div>
-                <ul id="todo-list"></ul>
+                <ul id="todo-list" class="todo-list"></ul>
+                <p id="todo-empty" class="empty-tip hidden">暂无任务，享受生活 🎉</p>
             </section>
 
-            <!-- 卡片部分 -->
-            <section>
-                <div class="card-container" id="bookmark-cards">
-                    <!-- 卡片将由JavaScript动态生成 -->
+            <!-- 书签 -->
+            <section class="panel bookmark-panel">
+                <div class="panel-header">
+                    <h2>🔖 书签</h2>
+                    <button id="add-bookmark-btn" class="text-btn">＋ 添加书签</button>
                 </div>
+                <div class="card-container" id="bookmark-cards"></div>
+                <p id="bookmark-empty" class="empty-tip hidden">还没有书签，点击右上角添加 🚀</p>
             </section>
         </div>
-
     </main>
 
     <footer>
-        <p>&copy; 2025 我的私人首页</p>
+        <p>© 2025 我的私人首页 · <span id="data-status">本地存储</span></p>
     </footer>
 </div>
 
-<!-- 设置背景图片的模态框 -->
-<div id="bg-modal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>设置背景图片</h2>
-        <p>您可以输入一个图片链接，或者从您的电脑中选择一张图片。</p>
-        <input type="text" id="bg-url" placeholder="输入图片URL (如: https://example.com/image.jpg)">
-        <br><br>
-        <input type="file" id="bg-file" accept="image/*" style="display: block; width: 100%; padding: 10px; font-size: 1rem;">
-        <br><br>
-        <button id="set-bg-btn">设置背景</button>
+<!-- ========== 书签编辑模态框 ========== -->
+<div id="bookmark-modal" class="modal">
+    <div class="modal-content small">
+        <span class="close" data-close="bookmark-modal">&times;</span>
+        <h2 id="bookmark-modal-title">添加书签</h2>
+        <form id="bookmark-form">
+            <input type="hidden" id="bookmark-edit-id">
+            <label>名称
+                <input type="text" id="bookmark-name" placeholder="例如：GitHub" required>
+            </label>
+            <label>网址
+                <input type="text" id="bookmark-url" placeholder="https://github.com" required>
+            </label>
+            <label>图标（可选：Emoji 或留空自动获取网站图标）
+                <input type="text" id="bookmark-icon" placeholder="例如：💻（留空自动）">
+            </label>
+            <div class="form-actions">
+                <button type="button" class="btn-ghost" data-close="bookmark-modal">取消</button>
+                <button type="submit" class="btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========== 待办编辑模态框 ========== -->
+<div id="todo-modal" class="modal">
+    <div class="modal-content small">
+        <span class="close" data-close="todo-modal">&times;</span>
+        <h2>编辑待办</h2>
+        <form id="todo-form">
+            <input type="hidden" id="todo-edit-id">
+            <label>内容
+                <input type="text" id="todo-edit-text" required>
+            </label>
+            <div class="form-row">
+                <label>优先级
+                    <select id="todo-edit-priority">
+                        <option value="high">🔴 高</option>
+                        <option value="medium" selected>🟠 中</option>
+                        <option value="low">🟢 低</option>
+                    </select>
+                </label>
+                <label>截止日期
+                    <input type="date" id="todo-edit-due">
+                </label>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-danger" id="todo-delete-btn">删除</button>
+                <span class="spacer"></span>
+                <button type="button" class="btn-ghost" data-close="todo-modal">取消</button>
+                <button type="submit" class="btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========== 设置模态框 ========== -->
+<div id="settings-modal" class="modal">
+    <div class="modal-content wide">
+        <span class="close" data-close="settings-modal">&times;</span>
+        <h2>设置</h2>
+        <div class="tabs" id="settings-tabs">
+            <button class="tab-btn active" data-tab="engines">搜索引擎</button>
+            <button class="tab-btn" data-tab="appearance">外观</button>
+            <button class="tab-btn" data-tab="data">数据</button>
+        </div>
+
+        <!-- 搜索引擎管理 -->
+        <div class="tab-panel active" id="tab-engines">
+            <p class="tab-desc">自定义你的搜索引擎列表，支持添加/编辑/删除，第一个为默认引擎。</p>
+            <ul id="engine-list" class="engine-list"></ul>
+            <form id="engine-form" class="engine-form">
+                <input type="hidden" id="engine-edit-id">
+                <div class="form-row">
+                    <label>名称
+                        <input type="text" id="engine-name" placeholder="例如：Google" required>
+                    </label>
+                    <label>搜索地址
+                        <input type="text" id="engine-url" placeholder="https://www.google.com/search" required>
+                    </label>
+                    <label>查询参数
+                        <input type="text" id="engine-query" placeholder="q" required>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <span class="form-tip" id="engine-form-tip"></span>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn-ghost" id="engine-reset-btn">恢复默认</button>
+                    <button type="submit" class="btn-primary" id="engine-save-btn">添加</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 外观 -->
+        <div class="tab-panel" id="tab-appearance">
+            <h3>主题</h3>
+            <div class="form-row">
+                <label>颜色模式
+                    <select id="settings-theme">
+                        <option value="auto">跟随系统</option>
+                        <option value="dark">深色</option>
+                        <option value="light">浅色</option>
+                    </select>
+                </label>
+            </div>
+            <h3>背景壁纸</h3>
+            <div class="form-row">
+                <label>图片链接
+                    <input type="text" id="bg-url" placeholder="https://example.com/image.jpg">
+                </label>
+                <button type="button" class="btn-ghost" id="bg-url-btn">应用</button>
+            </div>
+            <div class="form-row">
+                <label>本地图片
+                    <input type="file" id="bg-file" accept="image/*">
+                </label>
+                <button type="button" class="btn-ghost" id="bg-reset-btn">恢复默认</button>
+            </div>
+            <h3>天气</h3>
+            <div class="form-row">
+                <label>城市
+                    <input type="text" id="weather-city" placeholder="例如：北京 / Shanghai">
+                </label>
+                <button type="button" class="btn-ghost" id="weather-save-btn">保存</button>
+            </div>
+            <p class="form-tip">天气数据来自 Open-Meteo（免费，无需密钥）。保存城市后立即生效，也可打开页面时尝试自动定位。</p>
+        </div>
+
+        <!-- 数据 -->
+        <div class="tab-panel" id="tab-data">
+            <h3>备份与恢复</h3>
+            <p class="tab-desc">所有数据（书签、搜索引擎、待办、设置、搜索历史）都保存在浏览器 localStorage 中，可以导出 JSON 备份，或导入恢复。</p>
+            <div class="form-row">
+                <button type="button" class="btn-primary" id="export-btn">导出数据</button>
+                <label class="btn-ghost file-btn">导入数据
+                    <input type="file" id="import-file" accept=".json,application/json" hidden>
+                </label>
+            </div>
+            <h3>危险操作</h3>
+            <button type="button" class="btn-danger" id="reset-btn">重置全部数据</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 快捷键帮助模态框 ========== -->
+<div id="help-modal" class="modal">
+    <div class="modal-content small">
+        <span class="close" data-close="help-modal">&times;</span>
+        <h2>⌨️ 快捷键</h2>
+        <table class="shortcut-table">
+            <tr><td><kbd>/</kbd></td><td>聚焦搜索框</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>K</kbd></td><td>聚焦搜索框</td></tr>
+            <tr><td><kbd>t</kbd></td><td>聚焦待办输入框</td></tr>
+            <tr><td><kbd>n</kbd></td><td>新建书签</td></tr>
+            <tr><td><kbd>?</kbd></td><td>打开本帮助</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>关闭弹窗</td></tr>
+        </table>
     </div>
 </div>
 
