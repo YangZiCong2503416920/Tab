@@ -1,9 +1,9 @@
-# 个人浏览器标签页
+# StartTab · 个人浏览器起始页
 
 个人自定义的浏览器起始页，纯原生 HTML/CSS/JS，零依赖、零构建，数据全部保存在浏览器 localStorage 中。
 
 ## 怎么使用
-* 直接 Clone 使用 https://github.com/YangZiCong2503416920/Tab.git
+* 直接 Clone 使用 https://github.com/YangZiCong2503416920/StartTab.git
 * 在浏览器设置 → 初始页/启动时设置 → 自定义路径指定该 index.html
 
 ## 功能特性
